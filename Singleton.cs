@@ -6,7 +6,7 @@ namespace JazzApps.Utils
 {
     public abstract class Singleton<T> : MonoBehaviour where T : Component
     {
-        public bool Initialized;
+        [HideInInspector] protected bool Initialized;
         
         private static T _instance;
 
