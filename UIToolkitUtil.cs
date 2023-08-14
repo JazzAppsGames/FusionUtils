@@ -5,20 +5,31 @@ namespace JazzApps.Utils
 {
     public static class UIToolkitUtil
     {
-        public static void TranslateElementToMouse(UIDocument uiDocument, VisualElement targetElement)
+        public static void TranslateElementToMouse(UIDocument uiDocument, VisualElement element, Vector2 screenMousePosition)
         {
-            Vector2 mousePosition = Input.mousePosition;
-
-            // Convert mouse Y coordinate to UI Toolkit's coordinate system
+            TranslateElementToTargetWithinDocument(element, ConvertToDocumentSpace(uiDocument, screenMousePosition));
+        }
+        
+        
+        
+        private static Vector2 ConvertToDocumentSpace(UIDocument uiDocument, Vector2 mousePosition)
+        {
             mousePosition.y = Screen.height - mousePosition.y;
+            var resolutionScale = uiDocument.rootVisualElement.contentRect.size / new Vector2(Screen.width, Screen.height);
+            return Vector2.Scale(mousePosition, resolutionScale);
+        }
+        
+        private static void TranslateElementToTargetWithinDocument(VisualElement element, Vector2 localPosition)
+        {
+            var documentSize = element.panel.visualTree.resolvedStyle;
+            var elementSize = element.resolvedStyle;
 
-            // Calculate and apply the ratio between the document size and the screen size
-            float xRatio = uiDocument.rootVisualElement.resolvedStyle.width / Screen.width;
-            float yRatio = uiDocument.rootVisualElement.resolvedStyle.height / Screen.height;
-            Vector2 localPosition = new Vector2(mousePosition.x * xRatio, mousePosition.y * yRatio);
+            float adjustedX = Mathf.Clamp(localPosition.x, 0, documentSize.width - elementSize.width);
+            float adjustedY = Mathf.Clamp(localPosition.y, 0, documentSize.height - elementSize.height);
 
-            targetElement.style.left = localPosition.x;
-            targetElement.style.top = localPosition.y;
+            element.style.position = Position.Absolute;
+            element.style.left = adjustedX;
+            element.style.top = adjustedY;
         }
     }
 }
